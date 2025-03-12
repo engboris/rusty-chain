@@ -1,8 +1,8 @@
 use crate::txn;
-use sha2::{Sha256, Digest};
+use sha2::{Digest, Sha256};
 
 pub const NB_TXN_PER_BLOCK: usize = 3;
-pub const HASH_DIFFICULTY: usize = 2;
+pub const HASH_DIFFICULTY: usize = 3;
 
 #[derive(Debug, Clone, Hash)]
 pub struct BlockHeader {
@@ -26,11 +26,6 @@ impl Block {
     }
 }
 
-#[derive(Debug)]
-pub struct Blockchain {
-    pub blocks: Vec<Block>,
-}
-
 fn genesis_block() -> Block {
     Block {
         hash: String::new(),
@@ -42,11 +37,19 @@ fn genesis_block() -> Block {
     }
 }
 
+#[derive(Debug)]
+pub struct Blockchain {
+    pub blocks: Vec<Block>,
+}
+
 impl Blockchain {
     pub fn new() -> Self {
         Blockchain {
             blocks: vec![genesis_block()],
         }
+    }
+    pub fn len(&self) -> usize {
+        self.blocks.len()
     }
     pub fn mint(&mut self, block: &mut Block) {
         block.calculate_hash();

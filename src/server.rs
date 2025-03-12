@@ -6,7 +6,6 @@ use std::{
     collections::VecDeque,
     io::prelude::*,
     net::{TcpListener, TcpStream},
-    sync::{Arc, Mutex},
 };
 use txn::Transaction;
 
@@ -30,13 +29,11 @@ fn create_block(blockchain: &mut Blockchain, mempool: &mut VecDeque<Transaction>
 
 fn handle_connection(
     mut stream: TcpStream,
-    mempool: &mut std::sync::Arc<std::sync::Mutex<VecDeque<Transaction>>>,
-    blockchain: &mut std::sync::Arc<std::sync::Mutex<Blockchain>>,
+    mempool: &mut VecDeque<Transaction>,
+    blockchain: &mut Blockchain,
 ) -> Result<()> {
     println!("Handling connection.");
     let mut buffer = [0; size_of::<Transaction>()];
-    let mut mempool = mempool.lock().unwrap();
-    let mut blockchain = blockchain.lock().unwrap();
 
     loop {
         match stream.read_exact(&mut buffer) {
@@ -48,7 +45,8 @@ fn handle_connection(
             println!("Received transaction: {:?}", buffer)
         }
         if mempool.len() >= blockchain::NB_TXN_PER_BLOCK {
-            create_block(&mut blockchain, &mut mempool);
+            create_block(blockchain, mempool);
+            println!("Blockchain has {} blocks.", blockchain.len());
         }
     }
 }
@@ -57,14 +55,12 @@ fn create_listener(addr: &str) -> Result<()> {
     let listener = TcpListener::bind(addr).unwrap();
     println!("Server listening on {addr}...");
 
-    let mut mempool = Arc::new(Mutex::new(VecDeque::<Transaction>::new()));
-    let mut blockchain = Arc::new(Mutex::new(Blockchain::new()));
+    let mut mempool = VecDeque::<Transaction>::new();
+    let mut blockchain = Blockchain::new();
 
     for stream in listener.incoming() {
         match stream {
-            Ok(stream) => handle_connection(
-                stream, &mut mempool, &mut blockchain
-            ),
+            Ok(stream) => handle_connection(stream, &mut mempool, &mut blockchain),
             Err(e) => Err(Error::new(e)),
         }?;
     }
