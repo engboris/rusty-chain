@@ -1,4 +1,4 @@
-use crate::txn;
+use rusty_chain::common::txn::Transaction;
 use sha2::{Digest, Sha256};
 
 pub const NB_TXN_PER_BLOCK: usize = 3;
@@ -14,7 +14,7 @@ pub struct BlockHeader {
 pub struct Block {
     pub hash: String,
     pub header: BlockHeader,
-    pub txn: Vec<txn::Transaction>,
+    pub txn: Vec<Transaction>,
 }
 
 impl Block {
@@ -26,17 +26,6 @@ impl Block {
     }
 }
 
-fn genesis_block() -> Block {
-    Block {
-        hash: String::new(),
-        header: BlockHeader {
-            prev_hash: String::new(),
-            nounce: 0,
-        },
-        txn: vec![],
-    }
-}
-
 #[derive(Debug)]
 pub struct Blockchain {
     pub blocks: Vec<Block>,
@@ -44,8 +33,16 @@ pub struct Blockchain {
 
 impl Blockchain {
     pub fn new() -> Self {
+        let genesis_block = Block {
+            hash: String::new(),
+            header: BlockHeader {
+                prev_hash: String::new(),
+                nounce: 0,
+            },
+            txn: vec![],
+        };
         Blockchain {
-            blocks: vec![genesis_block()],
+            blocks: vec![genesis_block],
         }
     }
     pub fn len(&self) -> usize {

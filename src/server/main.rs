@@ -1,13 +1,12 @@
 mod blockchain;
-mod txn;
 use anyhow::{Error, Result};
 use blockchain::{Block, BlockHeader, Blockchain};
+use rusty_chain::common::txn::{Transaction, decode};
 use std::{
     collections::VecDeque,
     io::prelude::*,
     net::{TcpListener, TcpStream},
 };
-use txn::Transaction;
 
 fn create_block(blockchain: &mut Blockchain, mempool: &mut VecDeque<Transaction>) {
     println!("Creating block...");
@@ -40,7 +39,7 @@ fn handle_connection(
             Ok(()) => (),
             Err(_) => return Ok(()),
         }
-        if let Some(buffer) = txn::decode(&buffer) {
+        if let Some(buffer) = decode(&buffer) {
             mempool.push_back(buffer.clone());
             println!("Received transaction: {:?}", buffer)
         }
