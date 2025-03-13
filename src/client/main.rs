@@ -1,4 +1,4 @@
-use rusty_chain::common::txn::{Encodable, Transaction};
+use rusty_chain::core::txn::{Encodable, Transaction};
 use std::io::prelude::*;
 use std::net::TcpStream;
 

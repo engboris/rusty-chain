@@ -1,4 +1,4 @@
-use rusty_chain::common::txn::Transaction;
+use crate::core::txn::Transaction;
 use sha2::{Digest, Sha256};
 
 pub const NB_TXN_PER_BLOCK: usize = 3;
@@ -31,6 +31,12 @@ pub struct Blockchain {
     pub blocks: Vec<Block>,
 }
 
+impl Default for Blockchain {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Blockchain {
     pub fn new() -> Self {
         let genesis_block = Block {
@@ -48,11 +54,14 @@ impl Blockchain {
     pub fn len(&self) -> usize {
         self.blocks.len()
     }
+    pub fn is_empty(&self) -> bool {
+        self.blocks.is_empty()
+    }
     pub fn mint(&mut self, block: &mut Block) {
         block.calculate_hash();
         while !block.valid_hash() {
             block.header.nounce += 1;
-            println!("Nounce={}, hash={}...", block.header.nounce, block.hash);
+            log::debug!("Nounce={}, hash={}...", block.header.nounce, block.hash);
             block.calculate_hash();
         }
         self.blocks.push((*block).clone());
