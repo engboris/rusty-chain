@@ -66,6 +66,15 @@ impl Blockchain {
     pub fn len(&self) -> usize {
         self.blocks.len()
     }
+    pub fn update_account(&mut self, tx: &Transaction) {
+        if let Some(from_balance) = self.accounts.get_mut(&tx.from) {
+            *from_balance -= tx.amount as u128;
+        }
+        self.accounts
+            .entry(tx.to.clone())
+            .and_modify(|balance| *balance += tx.amount as u128)
+            .or_insert(tx.amount as u128);
+    }
     pub fn is_empty(&self) -> bool {
         self.blocks.is_empty()
     }
@@ -75,6 +84,9 @@ impl Blockchain {
             block.header.nounce += 1;
             log::debug!("Nounce={}, hash={}...", block.header.nounce, block.hash);
             block.calculate_hash();
+        }
+        for tx in &block.txn {
+            self.update_account(tx);
         }
         self.blocks.push((*block).clone());
     }

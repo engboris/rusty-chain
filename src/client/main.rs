@@ -8,8 +8,8 @@ fn main() -> std::io::Result<()> {
 
     println!("Connection established with {addr}.");
     let tx = Transaction {
-        from: 1,
-        to: 2,
+        from: String::from("a"),
+        to: String::from("b"),
         amount: 1,
     };
 
