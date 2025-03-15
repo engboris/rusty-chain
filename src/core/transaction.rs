@@ -23,18 +23,20 @@ impl Encodable for Transaction {
     }
 }
 
-pub fn decode(bytes: &[u8]) -> Option<Transaction> {
-    if bytes.len() < 3 {
-        return None;
-    }
-    let mut parts = bytes.split(|&b| b == 0);
-    let from_bytes = parts.next()?;
-    let to_bytes = parts.next()?;
-    let amount_byte = parts.next()?.first()?;
+impl Transaction {
+    pub fn decode(bytes: &[u8]) -> Option<Transaction> {
+        if bytes.len() < 3 {
+            return None;
+        }
+        let mut parts = bytes.split(|&b| b == 0);
+        let from_bytes = parts.next()?;
+        let to_bytes = parts.next()?;
+        let amount_byte = parts.next()?.first()?;
 
-    Some(Transaction {
-        from: String::from_utf8(from_bytes.to_vec()).ok()?,
-        to: String::from_utf8(to_bytes.to_vec()).ok()?,
-        amount: *amount_byte,
-    })
+        Some(Transaction {
+            from: String::from_utf8(from_bytes.to_vec()).ok()?,
+            to: String::from_utf8(to_bytes.to_vec()).ok()?,
+            amount: *amount_byte,
+        })
+    }
 }

@@ -1,4 +1,4 @@
-use crate::core::transaction::{Transaction, Address};
+use crate::core::transaction::{Address, Transaction};
 use sha2::{Digest, Sha256};
 use std::{collections::HashMap, time::SystemTime};
 
@@ -58,9 +58,19 @@ impl Blockchain {
             },
             txn: vec![],
         };
-        Blockchain {
+        let mut blockchain = Blockchain {
             accounts: HashMap::new(),
             blocks: vec![genesis_block],
+        };
+        // TEMPORARY: initial balance
+        blockchain.accounts.insert(String::from("a"), 100);
+        blockchain
+    }
+    pub fn valid_transaction(blockchain: &Blockchain, tx: &Transaction) -> bool {
+        // Checks if 'from' has enough money
+        match blockchain.accounts.get(&tx.from) {
+            Some(amount) => *amount >= tx.amount as u128,
+            None => false,
         }
     }
     pub fn len(&self) -> usize {

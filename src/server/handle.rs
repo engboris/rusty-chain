@@ -1,11 +1,11 @@
 use anyhow::{Error, Result};
 use rusty_chain::core::{
     blockchain::{Block, BlockHeader, Blockchain, NB_TXN_PER_BLOCK, get_time},
-    transaction::{Transaction, decode},
+    transaction::Transaction,
 };
 use std::{
     collections::VecDeque,
-    io::prelude::*,
+    io::{self, prelude::*},
     net::{TcpListener, TcpStream},
 };
 
@@ -28,22 +28,31 @@ fn create_block(blockchain: &mut Blockchain, mempool: &mut VecDeque<Transaction>
     log::info!("Block {} minted.", new_block.hash);
 }
 
+pub fn decode_from_stream(stream: &mut TcpStream) -> io::Result<Option<Transaction>> {
+    let mut buffer = Vec::new();
+    stream.read_to_end(&mut buffer)?;
+    Ok(Transaction::decode(&buffer))
+}
+
 fn handle_connection(
     mut stream: TcpStream,
     mempool: &mut VecDeque<Transaction>,
     blockchain: &mut Blockchain,
 ) -> Result<()> {
     log::info!("Handling connection.");
-    let mut buffer = [0; size_of::<Transaction>()];
 
     loop {
-        match stream.read_exact(&mut buffer) {
-            Ok(()) => (),
-            Err(_) => return Ok(()),
-        }
-        if let Some(buffer) = decode(&buffer) {
-            mempool.push_back(buffer.clone());
-            log::info!("Received transaction: {:?}", buffer)
+        match decode_from_stream(&mut stream) {
+            Err(e) => log::error!("Error: {e}"),
+            Ok(None) => return Ok(()),
+            Ok(Some(tx)) => {
+                if Blockchain::valid_transaction(blockchain, &tx) {
+                    mempool.push_back(tx.clone());
+                    log::info!("Received transaction: {:?}", tx)
+                } else {
+                    log::error!("Rejected transaction: {:?}", tx)
+                };
+            }
         }
         if mempool.len() >= NB_TXN_PER_BLOCK {
             create_block(blockchain, mempool);
