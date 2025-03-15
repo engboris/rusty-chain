@@ -2,6 +2,8 @@ pub trait Encodable {
     fn encode(&self) -> Vec<u8>;
 }
 
+pub type Address = String;
+
 #[derive(Debug, Clone)]
 pub struct Transaction {
     pub from: u8,

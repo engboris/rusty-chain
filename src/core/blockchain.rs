@@ -1,5 +1,6 @@
-use crate::core::txn::Transaction;
+use crate::core::transaction::{Transaction, Address};
 use sha2::{Digest, Sha256};
+use std::{collections::HashMap, time::SystemTime};
 
 pub const NB_TXN_PER_BLOCK: usize = 3;
 pub const HASH_DIFFICULTY: usize = 3;
@@ -13,6 +14,7 @@ pub struct BlockHeader {
 #[derive(Debug, Clone)]
 pub struct Block {
     pub hash: String,
+    pub time: u128,
     pub header: BlockHeader,
     pub txn: Vec<Transaction>,
 }
@@ -26,9 +28,17 @@ impl Block {
     }
 }
 
+pub fn get_time() -> u128 {
+    SystemTime::now()
+        .duration_since(SystemTime::UNIX_EPOCH)
+        .unwrap()
+        .as_millis()
+}
+
 #[derive(Debug)]
 pub struct Blockchain {
     pub blocks: Vec<Block>,
+    pub accounts: HashMap<Address, u128>,
 }
 
 impl Default for Blockchain {
@@ -41,6 +51,7 @@ impl Blockchain {
     pub fn new() -> Self {
         let genesis_block = Block {
             hash: String::new(),
+            time: get_time(),
             header: BlockHeader {
                 prev_hash: String::new(),
                 nounce: 0,
@@ -48,6 +59,7 @@ impl Blockchain {
             txn: vec![],
         };
         Blockchain {
+            accounts: HashMap::new(),
             blocks: vec![genesis_block],
         }
     }

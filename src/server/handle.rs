@@ -1,7 +1,7 @@
 use anyhow::{Error, Result};
 use rusty_chain::core::{
-    blockchain::{Block, BlockHeader, Blockchain, NB_TXN_PER_BLOCK},
-    txn::{Transaction, decode},
+    blockchain::{Block, BlockHeader, Blockchain, NB_TXN_PER_BLOCK, get_time},
+    transaction::{Transaction, decode},
 };
 use std::{
     collections::VecDeque,
@@ -14,6 +14,7 @@ fn create_block(blockchain: &mut Blockchain, mempool: &mut VecDeque<Transaction>
     let last_block = blockchain.get_last_block();
     let mut new_block = Block {
         hash: String::new(),
+        time: get_time(),
         header: BlockHeader {
             prev_hash: last_block.hash.clone(),
             nounce: last_block.header.nounce,
