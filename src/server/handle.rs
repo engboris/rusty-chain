@@ -1,12 +1,13 @@
 use anyhow::{Error, Result};
 use rusty_chain::core::{
-    blockchain::{Block, BlockHeader, Blockchain, NB_TXN_PER_BLOCK, get_time},
+    blockchain::{Block, BlockHeader, Blockchain, NB_TXN_PER_BLOCK},
     transaction::Transaction,
 };
 use std::{
     collections::VecDeque,
     io::{self, prelude::*},
     net::{TcpListener, TcpStream},
+    time::SystemTime,
 };
 
 fn create_block(blockchain: &mut Blockchain, mempool: &mut VecDeque<Transaction>) {
@@ -14,7 +15,10 @@ fn create_block(blockchain: &mut Blockchain, mempool: &mut VecDeque<Transaction>
     let last_block = blockchain.get_last_block();
     let mut new_block = Block {
         hash: String::new(),
-        time: get_time(),
+        time: SystemTime::now()
+            .duration_since(SystemTime::UNIX_EPOCH)
+            .unwrap()
+            .as_millis(),
         header: BlockHeader {
             prev_hash: last_block.hash.clone(),
             nounce: last_block.header.nounce,

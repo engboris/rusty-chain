@@ -28,13 +28,6 @@ impl Block {
     }
 }
 
-pub fn get_time() -> u128 {
-    SystemTime::now()
-        .duration_since(SystemTime::UNIX_EPOCH)
-        .unwrap()
-        .as_millis()
-}
-
 #[derive(Debug)]
 pub struct Blockchain {
     pub blocks: Vec<Block>,
@@ -51,7 +44,10 @@ impl Blockchain {
     pub fn new() -> Self {
         let genesis_block = Block {
             hash: String::new(),
-            time: get_time(),
+            time: SystemTime::now()
+                .duration_since(SystemTime::UNIX_EPOCH)
+                .unwrap()
+                .as_millis(),
             header: BlockHeader {
                 prev_hash: String::new(),
                 nounce: 0,
@@ -66,6 +62,7 @@ impl Blockchain {
         blockchain.accounts.insert(String::from("a"), 100);
         blockchain
     }
+
     pub fn valid_transaction(blockchain: &Blockchain, tx: &Transaction) -> bool {
         // Checks if 'from' has enough money
         match blockchain.accounts.get(&tx.from) {
@@ -73,9 +70,11 @@ impl Blockchain {
             None => false,
         }
     }
+
     pub fn len(&self) -> usize {
         self.blocks.len()
     }
+
     pub fn update_account(&mut self, tx: &Transaction) {
         if let Some(from_balance) = self.accounts.get_mut(&tx.from) {
             *from_balance -= tx.amount as u128;
@@ -85,9 +84,11 @@ impl Blockchain {
             .and_modify(|balance| *balance += tx.amount as u128)
             .or_insert(tx.amount as u128);
     }
+
     pub fn is_empty(&self) -> bool {
         self.blocks.is_empty()
     }
+
     pub fn mint(&mut self, block: &mut Block) {
         block.calculate_hash();
         while !block.valid_hash() {
@@ -100,6 +101,7 @@ impl Blockchain {
         }
         self.blocks.push((*block).clone());
     }
+
     pub fn get_last_block(&self) -> &Block {
         self.blocks.last().expect("Erorr: no last block.")
     }
