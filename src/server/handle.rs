@@ -32,13 +32,13 @@ fn create_block(blockchain: &mut Blockchain, mempool: &mut VecDeque<Transaction>
     log::info!("Block {} minted.", new_block.hash);
 }
 
-pub fn decode_from_stream(stream: &mut TcpStream) -> io::Result<Option<Transaction>> {
+pub async fn decode_from_stream(stream: &mut TcpStream) -> io::Result<Option<Transaction>> {
     let mut buffer = Vec::new();
     stream.read_to_end(&mut buffer)?;
     Ok(Transaction::decode(&buffer))
 }
 
-fn handle_connection(
+async fn handle_connection(
     mut stream: TcpStream,
     mempool: &mut VecDeque<Transaction>,
     blockchain: &mut Blockchain,
@@ -46,7 +46,7 @@ fn handle_connection(
     log::info!("Handling connection.");
 
     loop {
-        match decode_from_stream(&mut stream) {
+        match decode_from_stream(&mut stream).await {
             Err(e) => log::error!("Error: {e}"),
             Ok(None) => return Ok(()),
             Ok(Some(tx)) => {
@@ -65,7 +65,7 @@ fn handle_connection(
     }
 }
 
-pub fn create_listener(addr: &str) -> Result<()> {
+pub async fn create_listener(addr: &str) -> Result<()> {
     let listener = TcpListener::bind(addr).unwrap();
     log::info!("Server listening on {addr}...");
 
@@ -74,7 +74,9 @@ pub fn create_listener(addr: &str) -> Result<()> {
 
     for stream in listener.incoming() {
         match stream {
-            Ok(stream) => handle_connection(stream, &mut mempool, &mut blockchain),
+            Ok(stream) => {
+                handle_connection(stream, &mut mempool, &mut blockchain).await
+            },
             Err(e) => Err(Error::new(e)),
         }?;
     }

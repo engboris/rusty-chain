@@ -64,7 +64,7 @@ impl Blockchain {
     }
 
     pub fn valid_transaction(blockchain: &Blockchain, tx: &Transaction) -> bool {
-        // Checks if 'from' has enough money
+        // Checks if sender's balance is sufficient
         match blockchain.accounts.get(&tx.from) {
             Some(amount) => *amount >= tx.amount as u128,
             None => false,
