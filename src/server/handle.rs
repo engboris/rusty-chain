@@ -74,9 +74,7 @@ pub async fn create_listener(addr: &str) -> Result<()> {
 
     for stream in listener.incoming() {
         match stream {
-            Ok(stream) => {
-                handle_connection(stream, &mut mempool, &mut blockchain).await
-            },
+            Ok(stream) => handle_connection(stream, &mut mempool, &mut blockchain).await,
             Err(e) => Err(Error::new(e)),
         }?;
     }
